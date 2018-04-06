@@ -2,3 +2,5 @@ gradleBuild/
 .gradle/
 .idea/
 gradle/wrapper/
+local.properties
+*.iml
