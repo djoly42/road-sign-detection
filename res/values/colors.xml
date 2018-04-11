@@ -16,4 +16,6 @@
 -->
 <resources>
     <color name="control_background">#cc4285f4</color>
+    <color name="bottom_menu_background">#fff5f5f5</color>
+    <color name="bottom_menu_greeting">#ff212121</color>
 </resources>
