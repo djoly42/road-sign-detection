@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:orientation="horizontal"
+    android:background="@color/bottom_menu_background"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:layout_alignParentBottom="true">
+
+    <ImageButton
+        android:id="@+id/bottom_tab_1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_assessment_white_24dp"
+        android:layout_weight="40" />
+
+    <TextView
+        android:id="@+id/bottom_tab_2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/bottom_menu_greeting"
+        android:textSize="18sp"
+        android:textColor="@color/bottom_menu_greeting"
+        android:layout_weight="20" />
+
+    <ImageButton
+        android:id="@+id/bottom_tab_3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/ic_camera_enhance_white_24dp"
+        android:layout_weight="40" />
 
 </LinearLayout>
