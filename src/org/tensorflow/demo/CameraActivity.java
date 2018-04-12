@@ -26,15 +26,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Size;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 import java.nio.ByteBuffer;
 import org.tensorflow.demo.env.Logger;
 import org.tensorflow.demo.R;
+import android.support.v7.app.AppCompatActivity;
 
-public abstract class CameraActivity extends Activity implements OnImageAvailableListener {
+public abstract class CameraActivity extends AppCompatActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
 
   private static final int PERMISSIONS_REQUEST = 1;
@@ -47,14 +52,16 @@ public abstract class CameraActivity extends Activity implements OnImageAvailabl
   private Handler handler;
   private HandlerThread handlerThread;
 
+  private DrawerLayout mDrawerLayout;
+
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     LOGGER.d("onCreate " + this);
     super.onCreate(null);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    setContentView(R.layout.activity_camera);
-
+    setContentView(R.layout.left_menu_drawer);
+    mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     if (hasPermission()) {
       setFragment();
     } else {
@@ -211,6 +218,10 @@ public abstract class CameraActivity extends Activity implements OnImageAvailabl
       return true;
     }
     return super.onKeyDown(keyCode, event);
+  }
+
+  public void openLeftDrawer(View view) {
+    mDrawerLayout.openDrawer(GravityCompat.START);
   }
 
   protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
