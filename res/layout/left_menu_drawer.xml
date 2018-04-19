@@ -17,4 +17,12 @@
         app:menu="@menu/drawer_view"
         app:headerLayout="@layout/left_menu_header" />
 
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view_right"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:fitsSystemWindows="false"
+        app:menu="@menu/drawer_view_right" />
+
 </android.support.v4.widget.DrawerLayout>

@@ -17,7 +17,6 @@
 package org.tensorflow.demo;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Fragment;
 import android.content.pm.PackageManager;
 import android.media.Image.Plane;
@@ -26,18 +25,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Size;
-import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
-import java.nio.ByteBuffer;
+
 import org.tensorflow.demo.env.Logger;
-import org.tensorflow.demo.R;
-import android.support.v7.app.AppCompatActivity;
+
+import java.nio.ByteBuffer;
 
 public abstract class CameraActivity extends AppCompatActivity implements OnImageAvailableListener {
   private static final Logger LOGGER = new Logger();
@@ -67,6 +69,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     } else {
       requestPermission();
     }
+    displayRightNavigation();
   }
 
   @Override
@@ -227,4 +230,61 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
   protected abstract int getLayoutId();
   protected abstract Size getDesiredPreviewFrameSize();
+
+  private void displayRightNavigation(){
+    final NavigationView navigationViewRight = (NavigationView) findViewById(R.id.nav_view_right);
+    navigationViewRight.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+      @Override
+      public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        /*
+        if (id == R.id.nav_camera_right) {
+          // Handle the camera action
+        } else if (id == R.id.nav_gallery_right) {
+
+        } else if (id == R.id.nav_slideshow_right) {
+
+        } else if (id == R.id.nav_manage_right) {
+
+        } else if (id == R.id.nav_share_right) {
+
+        } else if (id == R.id.nav_send_right) {
+
+        }
+*/
+        Toast.makeText(CameraActivity.this, "Handle from navigation right", Toast.LENGTH_SHORT).show();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.END);
+        return true;
+
+      }
+    });
+  }
+
+  @Override
+  public void onBackPressed() {
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+    if (drawer.isDrawerOpen(GravityCompat.START)) {
+      drawer.closeDrawer(GravityCompat.START);
+    } else if(drawer.isDrawerOpen(GravityCompat.END)){
+      drawer.closeDrawer(GravityCompat.END);
+    }else {
+      super.onBackPressed();
+    }
+  }
+
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    int id = item.getItemId();
+    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+    if (id == R.id.action_settings) {
+      drawer.openDrawer(GravityCompat.END);
+    }
+
+    return super.onOptionsItemSelected(item);
+  }
 }
