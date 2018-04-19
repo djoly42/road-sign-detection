@@ -62,7 +62,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     super.onCreate(null);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    setContentView(R.layout.left_menu_drawer);
+    setContentView(R.layout.activity_main);
     mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     if (hasPermission()) {
       setFragment();
@@ -225,6 +225,11 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
   public void openLeftDrawer(View view) {
     mDrawerLayout.openDrawer(GravityCompat.START);
+  }
+
+
+  public void openRightDrawer(View view) {
+    mDrawerLayout.openDrawer(GravityCompat.END);
   }
 
   protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
