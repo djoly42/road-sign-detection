@@ -200,10 +200,11 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   @Override
   public synchronized void onPause() {
     LOGGER.d("onPause " + this);
+    super.onPause();
 
     if (!isFinishing()) {
       LOGGER.d("Requesting finish");
-      finish();
+      //finish();
     }
 
     handlerThread.quitSafely();
@@ -215,7 +216,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
       LOGGER.e(e, "Exception!");
     }
 
-    super.onPause();
   }
 
   @Override
