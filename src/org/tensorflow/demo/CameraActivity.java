@@ -87,7 +87,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   private RecyclerView mRecyclerView;
   private LinearLayoutManager mLayoutManager;
   private MessageAdapter mAdapter;
-
+  private List messageList = new ArrayList();
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
@@ -95,7 +95,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     super.onCreate(null);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    setContentView(R.layout.activity_camera);
+    setContentView(R.layout.activity_main);
     mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
     if (hasPermission()) {
       setFragment();
@@ -115,7 +115,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
 
   }
-  private List messageList = new ArrayList();
 
   // The Handler that gets information back from the BluetoothChatService
   private final Handler mHandler = new Handler() {
