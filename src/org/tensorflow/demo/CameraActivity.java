@@ -29,6 +29,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -121,7 +122,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   // The Handler that gets information back from the BluetoothChatService
   private final Handler mHandler = new Handler() {
     @Override
-    public void handleMessage(Message msg) {
+    public void handleMessage(final Message msg) {
       switch (msg.what) {
         case MESSAGE_WRITE:
           byte[] writeBuf = (byte[]) msg.obj;
@@ -144,8 +145,13 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
                   + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
           break;
         case MESSAGE_TOAST:
-          Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-                  Toast.LENGTH_SHORT).show();
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
+                      Toast.LENGTH_SHORT).show();
+            }
+          });
           break;
       }
     }
