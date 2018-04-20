@@ -113,6 +113,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
       finish();
       return;
     }
+    displayRightNavigation();
+
 
   }
 
@@ -446,13 +448,13 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
   }
 
-  public void connect(View v) {
+  public void connect(MenuItem i) {
     Intent serverIntent = new Intent(this, DeviceListActivity.class);
     startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
   }
 
 
-  public void discoverable(View v) {
+  public void discoverable(MenuItem i) {
     ensureDiscoverable();
   }
 

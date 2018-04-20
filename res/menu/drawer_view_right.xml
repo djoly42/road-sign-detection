@@ -12,5 +12,6 @@
             android:icon="@drawable/ic_history_black_24dp"
             android:onClick="discoverable"
             android:title="make discoverable" />
+
     </group>
 </menu>
