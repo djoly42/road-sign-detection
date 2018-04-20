@@ -3,12 +3,14 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/left_menu_first_item"
+            android:id="@+id/scan"
             android:icon="@drawable/ic_history_black_24dp"
-            android:title="item 1" />
+            android:onClick="connect"
+            android:title="connect a device" />
         <item
-            android:id="@+id/left_menu_second_item"
+            android:id="@+id/discoverable"
             android:icon="@drawable/ic_history_black_24dp"
-            android:title="item 2" />
+            android:onClick="discoverable"
+            android:title="make discoverable" />
     </group>
 </menu>
