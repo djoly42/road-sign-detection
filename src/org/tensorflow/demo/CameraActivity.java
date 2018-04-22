@@ -38,6 +38,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.Size;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -52,6 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidRecyclerView.MessageAdapter;
+import androidRecyclerView.MessageManager;
 
 public abstract class CameraActivity extends AppCompatActivity implements OnImageAvailableListener {
   //CHAT BLUETOOTH
@@ -90,6 +92,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   private MessageAdapter mAdapter;
   private List messageList = new ArrayList();
 
+  private MessageManager messageManager = null;
+
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     LOGGER.d("onCreate " + this);
@@ -115,8 +119,7 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
       return;
     }
     displayRightNavigation();
-
-
+    messageManager = new MessageManager();
   }
 
   // The Handler that gets information back from the BluetoothChatService
@@ -411,6 +414,12 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
 
   public void sendMessage(String message) {
+
+    if(!this.messageManager.doSend(message)){
+      Log.d("messageManager", "dont send message :" + message);
+
+      return;
+    }
 
     // Check that we're actually connected before trying anything
     if (mChatService.getState() != BluetoothChatService.STATE_CONNECTED) {
