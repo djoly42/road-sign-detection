@@ -246,12 +246,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
   }
 
-
-  void doStop(){
-    handler.removeCallbacksAndMessages(null);
-  }
-
-
   @Override
   public void onRequestPermissionsResult(
           final int requestCode, final String[] permissions, final int[] grantResults) {
