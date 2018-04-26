@@ -31,6 +31,7 @@ import android.os.Trace;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
+import android.widget.TextView;
 
 import org.tensorflow.demo.OverlayView.DrawCallback;
 import org.tensorflow.demo.env.BorderedText;
@@ -96,12 +97,12 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
   private Bitmap cropCopyBitmap;
 
-  private boolean computing = false;
 
   private Matrix frameToCropTransform;
   private Matrix cropToFrameTransform;
 
   private ResultsView resultsView;
+
 
   private BorderedText borderedText;
 
@@ -185,7 +186,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
         return;
       }
 
-      if (computing) {
+      if (computing || !istart) {
         image.close();
         return;
       }
@@ -229,36 +230,38 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
       ImageUtils.saveBitmap(croppedBitmap);
     }
 
+
     runInBackground(
-        new Runnable() {
-          @Override
-          public void run() {
-          final long startTime = SystemClock.uptimeMillis();
-          final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
+            new Runnable() {
+              @Override
+              public void run() {
 
-          lastProcessingTimeMs =SystemClock.uptimeMillis()-startTime;
+                final long startTime = SystemClock.uptimeMillis();
+                final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
 
-          cropCopyBitmap =Bitmap.createBitmap(croppedBitmap);
+                lastProcessingTimeMs =SystemClock.uptimeMillis()-startTime;
 
-          //resultsView.setResults(results);
-          sendMessage(results.get(0).getTitle());
+                cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
 
-          /*
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run () {
-              result2View.setText(results.toString());
-            }
-          });
-          */
-          requestRender();
+                sendMessage(results.get(0).getTitle());
 
-          computing =false;
-        }
-        });
+                runOnUiThread(new Runnable() {
+                  @Override
+                  public void run () {
+                    //resultsView.setText(results.toString());
+                    //resultsView.setText(results.toString());
+                    resultsView.setResults(results);
 
+                  }
+                });
+                requestRender();
+                computing =false;
+              }
+            });
     Trace.endSection();
   }
+
+
 
   @Override
   public void onSetDebug(boolean debug) {
@@ -297,4 +300,6 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
       borderedText.drawLines(canvas, 10, canvas.getHeight() - 10, lines);
     }
   }
+
+
 }

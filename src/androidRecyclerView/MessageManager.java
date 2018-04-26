@@ -1,11 +1,14 @@
 package androidRecyclerView;
 
+//import com.couchbase.lite.android.AndroidContext;
+
 /**
  * Created by daniel on 22/04/18.
  */
 
 public class MessageManager {
 
+  private static final String TAG = "TAG";
   public static String lastMessage;
 
 
@@ -32,4 +35,5 @@ public class MessageManager {
     }
     return false;
   }
+
 }

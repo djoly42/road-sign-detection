@@ -93,11 +93,16 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   private List messageList = new ArrayList();
 
   private MessageManager messageManager = null;
+  protected boolean computing = false;
+
+
+  protected boolean istart = false;
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
     LOGGER.d("onCreate " + this);
     super.onCreate(null);
+
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setContentView(R.layout.activity_main);
@@ -241,6 +246,12 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
   }
 
+
+  void doStop(){
+    handler.removeCallbacksAndMessages(null);
+  }
+
+
   @Override
   public void onRequestPermissionsResult(
           final int requestCode, final String[] permissions, final int[] grantResults) {
@@ -341,6 +352,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   public void openLeftDrawer(View view) {
     mDrawerLayout.openDrawer(GravityCompat.START);
   }
+
+
 
 
   public void openRightDrawer(View view) {
@@ -482,5 +495,15 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
   }
 
+  public void stopAndStart (View view){
+        if (!istart){
+          Log.d("stopAndStart" , "start");
+          istart = true;
 
+        }
+        else{
+          Log.d("stopAndStart" , "stop");
+          istart = false;
+        }
+    }
 }

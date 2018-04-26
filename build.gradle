@@ -41,7 +41,7 @@ android {
 
     defaultConfig {
         applicationId "org.tensorflow.demo"
-        minSdkVersion 14
+        minSdkVersion 19
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -71,6 +71,7 @@ android {
 
             dependencies {
                 compile 'org.tensorflow:tensorflow-android:+'
+                compile 'com.couchbase.lite:couchbase-lite-android:2.0.0'
                 implementation 'com.android.support:appcompat-v7:27.1.1'
                 implementation 'com.android.support:design:27.1.1'
                 implementation 'de.hdodenhof:circleimageview:2.2.0'
