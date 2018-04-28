@@ -54,6 +54,7 @@ import java.util.List;
 
 import androidRecyclerView.MessageAdapter;
 import androidRecyclerView.MessageManager;
+import static org.tensorflow.demo.Config.LOGGING_TAG;
 
 public abstract class CameraActivity extends AppCompatActivity implements OnImageAvailableListener {
   //CHAT BLUETOOTH
@@ -67,7 +68,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   public static final String DEVICE_NAME = "device_name";
   public static final String TOAST = "toast";
   private static final Logger LOGGER = new Logger();
-  private static final int PERMISSIONS_REQUEST = 1;
   private static final String PERMISSION_CAMERA = Manifest.permission.CAMERA;
   private static final String PERMISSION_STORAGE = Manifest.permission.WRITE_EXTERNAL_STORAGE;
   // Intent request codes
@@ -75,8 +75,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   private static final int REQUEST_ENABLE_BT = 2;
   public int counter = 0;
   private boolean debug = false;
-  private Handler handler;
-  private HandlerThread handlerThread;
   //private EditText mOutEditText;
   private DrawerLayout mDrawerLayout;
   // Name of the connected device
@@ -94,125 +92,43 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
   private MessageManager messageManager = null;
   protected boolean computing = false;
-
-
   protected boolean istart = false;
+
+  private static final int PERMISSIONS_REQUEST = 1;
+
+  private Handler handler;
+  private HandlerThread handlerThread;
 
   @Override
   protected void onCreate(final Bundle savedInstanceState) {
-    LOGGER.d("onCreate " + this);
     super.onCreate(null);
-
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
     setContentView(R.layout.activity_main);
     mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+
     if (hasPermission()) {
       setFragment();
     } else {
       requestPermission();
     }
 
-    mLayoutManager = new LinearLayoutManager(this);
-    mAdapter = new MessageAdapter(getBaseContext(), messageList);
-    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-    // If the adapter is null, then Bluetooth is not supported
-    if (mBluetoothAdapter == null) {
-      Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-      finish();
-      return;
-    }
     displayRightNavigation();
-    messageManager = new MessageManager();
   }
-
-  // The Handler that gets information back from the BluetoothChatService
-  private final Handler mHandler = new Handler() {
-    @Override
-    public void handleMessage(final Message msg) {
-      switch (msg.what) {
-        case MESSAGE_WRITE:
-          byte[] writeBuf = (byte[]) msg.obj;
-          // construct a string from the buffer
-          String writeMessage = new String(writeBuf);
-          mAdapter.notifyDataSetChanged();
-          messageList.add(new androidRecyclerView.Message(counter++, writeMessage, "Me"));
-          break;
-        case MESSAGE_READ:
-          byte[] readBuf = (byte[]) msg.obj;
-          // construct a string from the valid bytes in the buffer
-          String readMessage = new String(readBuf, 0, msg.arg1);
-          mAdapter.notifyDataSetChanged();
-          messageList.add(new androidRecyclerView.Message(counter++, readMessage, mConnectedDeviceName));
-          break;
-        case MESSAGE_DEVICE_NAME:
-          // save the connected device's name
-          mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
-          Toast.makeText(getApplicationContext(), "Connected to "
-                  + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
-          break;
-        case MESSAGE_TOAST:
-          new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-              Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-                      Toast.LENGTH_SHORT).show();
-            }
-          });
-          break;
-      }
-    }
-  };
-
-  @Override
-  public synchronized void onStart() {
-    LOGGER.d("onStart " + this);
-    super.onStart();
-    if (!mBluetoothAdapter.isEnabled()) {
-      Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-      startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-    } else {
-      if (mChatService == null) setupChat();
-    }
-  }
-
-  private void setupChat() {
-    //mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-    //mOutEditText.setOnEditorActionListener(mWriteListener);
-
-    // Initialize the BluetoothChatService to perform bluetooth connections
-    mChatService = new BluetoothChatService(this, mHandler);
-
-    // Initialize the buffer for outgoing messages
-    mOutStringBuffer = new StringBuffer("");
-  }
-
 
   @Override
   public synchronized void onResume() {
-    LOGGER.d("onResume " + this);
     super.onResume();
 
     handlerThread = new HandlerThread("inference");
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
-
-    if (mChatService != null) {
-      if (mChatService.getState() == BluetoothChatService.STATE_NONE) {
-        mChatService.start();
-      }
-    }
   }
 
   @Override
   public synchronized void onPause() {
-    LOGGER.d("onPause " + this);
-    super.onPause();
-
     if (!isFinishing()) {
-      LOGGER.d("Requesting finish");
-      //finish();
+      finish();
     }
 
     handlerThread.quitSafely();
@@ -220,35 +136,22 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
       handlerThread.join();
       handlerThread = null;
       handler = null;
-    } catch (final InterruptedException e) {
-      LOGGER.e(e, "Exception!");
+    } catch (final InterruptedException ex) {
+      Log.e(LOGGING_TAG, "Exception: " + ex.getMessage());
     }
 
+    super.onPause();
   }
 
-  @Override
-  public synchronized void onStop() {
-    LOGGER.d("onStop " + this);
-    super.onStop();
-  }
-
-  @Override
-  public synchronized void onDestroy() {
-    LOGGER.d("onDestroy " + this);
-    super.onDestroy();
-    // Stop the Bluetooth chat services
-    if (mChatService != null) mChatService.stop();
-  }
-
-  protected synchronized void runInBackground(final Runnable r) {
+  protected synchronized void runInBackground(final Runnable runnable) {
     if (handler != null) {
-      handler.post(r);
+      handler.post(runnable);
     }
   }
 
   @Override
-  public void onRequestPermissionsResult(
-          final int requestCode, final String[] permissions, final int[] grantResults) {
+  public void onRequestPermissionsResult(final int requestCode, final String[] permissions,
+                                         final int[] grantResults) {
     switch (requestCode) {
       case PERMISSIONS_REQUEST: {
         if (grantResults.length > 0
@@ -264,7 +167,8 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
   private boolean hasPermission() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      return checkSelfPermission(PERMISSION_CAMERA) == PackageManager.PERMISSION_GRANTED && checkSelfPermission(PERMISSION_STORAGE) == PackageManager.PERMISSION_GRANTED;
+      return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+              && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
     } else {
       return true;
     }
@@ -272,75 +176,56 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
 
   private void requestPermission() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      if (shouldShowRequestPermissionRationale(PERMISSION_CAMERA) || shouldShowRequestPermissionRationale(PERMISSION_STORAGE)) {
-        Toast.makeText(CameraActivity.this, "Camera AND storage permission are required for this demo", Toast.LENGTH_LONG).show();
+      if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)
+              || shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+        Toast.makeText(CameraActivity.this,
+                "Camera AND storage permission are required for this demo", Toast.LENGTH_LONG).show();
       }
-      requestPermissions(new String[]{PERMISSION_CAMERA, PERMISSION_STORAGE}, PERMISSIONS_REQUEST);
+      requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST);
     }
   }
 
   protected void setFragment() {
-    final Fragment fragment =
-            CameraConnectionFragment.newInstance(
-                    new CameraConnectionFragment.ConnectionCallback() {
-                      @Override
-                      public void onPreviewSizeChosen(final Size size, final int rotation) {
-                        CameraActivity.this.onPreviewSizeChosen(size, rotation);
-                      }
-                    },
-                    this,
-                    getLayoutId(),
-                    getDesiredPreviewFrameSize());
+    CameraConnectionFragment cameraConnectionFragment = new CameraConnectionFragment();
+    cameraConnectionFragment.addConnectionListener((final Size size, final int rotation) ->
+            CameraActivity.this.onPreviewSizeChosen(size, rotation));
+    cameraConnectionFragment.addImageAvailableListener(this);
 
     getFragmentManager()
             .beginTransaction()
-            .replace(R.id.container, fragment)
+            .replace(R.id.container, cameraConnectionFragment)
             .commit();
   }
 
-  protected void fillBytes(final Plane[] planes, final byte[][] yuvBytes) {
-    // Because of the variable row stride it's not possible to know in
-    // advance the actual necessary dimensions of the yuv planes.
-    for (int i = 0; i < planes.length; ++i) {
-      final ByteBuffer buffer = planes[i].getBuffer();
-      if (yuvBytes[i] == null) {
-        LOGGER.d("Initializing buffer %d at size %d", i, buffer.capacity());
-        yuvBytes[i] = new byte[buffer.capacity()];
-      }
-      buffer.get(yuvBytes[i]);
-    }
-  }
-
-  public boolean isDebug() {
-    return debug;
-  }
-
   public void requestRender() {
-    final OverlayView overlay = (OverlayView) findViewById(R.id.debug_overlay);
+    final OverlayView overlay = (OverlayView) findViewById(R.id.overlay);
     if (overlay != null) {
       overlay.postInvalidate();
     }
   }
 
   public void addCallback(final OverlayView.DrawCallback callback) {
-    final OverlayView overlay = (OverlayView) findViewById(R.id.debug_overlay);
+    final OverlayView overlay = (OverlayView) findViewById(R.id.overlay);
     if (overlay != null) {
       overlay.addCallback(callback);
     }
   }
 
-  public void onSetDebug(final boolean debug) {
-  }
+  protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
 
-  @Override
-  public boolean onKeyDown(final int keyCode, final KeyEvent event) {
-    if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-      debug = !debug;
-      requestRender();
-      onSetDebug(debug);
-      return true;
+
+  // method add
+  public void stopAndStart (View view){
+    if (!istart){
+      Log.d("stopAndStart" , "start");
+      istart = true;
+
     }
-    return super.onKeyDown(keyCode, event);
+    else{
+      Log.d("stopAndStart" , "stop");
+      istart = false;
+    }
+
   }
 
   public void openLeftDrawer(View view) {
@@ -348,17 +233,9 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
   }
 
 
-
-
   public void openRightDrawer(View view) {
     mDrawerLayout.openDrawer(GravityCompat.END);
   }
-
-  protected abstract void onPreviewSizeChosen(final Size size, final int rotation);
-
-  protected abstract int getLayoutId();
-
-  protected abstract Size getDesiredPreviewFrameSize();
 
   private void displayRightNavigation() {
     final NavigationView navigationViewRight = (NavigationView) findViewById(R.id.nav_view_right);
@@ -417,59 +294,6 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     return super.onOptionsItemSelected(item);
   }
 
-  // bluetooth
-
-
-  public void sendMessage(String message) {
-
-    if(!this.messageManager.doSend(message)){
-      Log.d("messageManager", "dont send message :" + message);
-
-      return;
-    }
-
-    // Check that we're actually connected before trying anything
-    if (mChatService.getState() != BluetoothChatService.STATE_CONNECTED) {
-      Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-      return;
-    }
-    // Check that there's actually something to send
-    if (message.length() > 0) {
-      // Get the message bytes and tell the BluetoothChatService to write
-      byte[] send = message.getBytes();
-      mChatService.write(send);
-      // Reset out string buffer to zero and clear the edit text field
-      mOutStringBuffer.setLength(0);
-      //mOutEditText.setText(mOutStringBuffer);
-    }
-  }
-
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    switch (requestCode) {
-      case REQUEST_CONNECT_DEVICE:
-        // When DeviceListActivity returns with a device to connect
-        if (resultCode == Activity.RESULT_OK) {
-          // Get the device MAC address
-          String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-          // Get the BLuetoothDevice object
-          BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-          // Attempt to connect to the device
-          mChatService.connect(device);
-        }
-        break;
-      case REQUEST_ENABLE_BT:
-        // When the request to enable Bluetooth returns
-        if (resultCode == Activity.RESULT_OK) {
-          // Bluetooth is now enabled, so set up a chat session
-          setupChat();
-        } else {
-          // User did not enable Bluetooth or an error occured
-          Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
-          finish();
-        }
-    }
-  }
-
   public void connect(MenuItem i) {
     Intent serverIntent = new Intent(this, DeviceListActivity.class);
     startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
@@ -489,15 +313,10 @@ public abstract class CameraActivity extends AppCompatActivity implements OnImag
     }
   }
 
-  public void stopAndStart (View view){
-        if (!istart){
-          Log.d("stopAndStart" , "start");
-          istart = true;
 
-        }
-        else{
-          Log.d("stopAndStart" , "stop");
-          istart = false;
-        }
-    }
+  //end method add
+
+
+
+
 }

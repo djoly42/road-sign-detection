@@ -15,7 +15,8 @@ limitations under the License.
 
 package org.tensorflow.demo;
 
-import org.tensorflow.demo.Classifier.Recognition;
+
+import org.tensorflow.demo.model.Recognition;
 
 import java.util.List;
 
