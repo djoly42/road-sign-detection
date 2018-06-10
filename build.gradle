@@ -28,7 +28,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.0'
+        classpath 'com.android.tools.build:gradle:3.0.1'
     }
 }
 
@@ -73,6 +73,10 @@ android {
 }
 
 
+dependencies {
+    implementation 'com.android.support.constraint:constraint-layout:+'
+    implementation project(':openCVLibrary341')
+}
 repositories {
     google()
 }

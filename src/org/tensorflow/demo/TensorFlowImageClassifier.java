@@ -17,12 +17,17 @@ package org.tensorflow.demo;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.os.Environment;
 import android.os.Trace;
 import android.util.Log;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -36,7 +41,7 @@ public class TensorFlowImageClassifier implements Classifier {
 
   // Only return this many results with at least this confidence.
   private static final int MAX_RESULTS = 3;
-  private static final float THRESHOLD = 0.1f;
+  private static final float THRESHOLD = 0.7f;
 
   // Config values.
   private String inputName;
@@ -99,6 +104,8 @@ public class TensorFlowImageClassifier implements Classifier {
     } catch (IOException e) {
       throw new RuntimeException("Problem reading label file!" , e);
     }
+    Log.i(TAG, "Reading labels from: " + outputName);
+
 
     c.inferenceInterface = new TensorFlowInferenceInterface(assetManager, modelFilename);
 
@@ -131,18 +138,64 @@ public class TensorFlowImageClassifier implements Classifier {
     Trace.beginSection("preprocessBitmap");
     // Preprocess the image data from 0-255 int to normalized float based
     // on the provided parameters.
+
     bitmap.getPixels(intValues, 0, bitmap.getWidth(), 0, 0, bitmap.getWidth(), bitmap.getHeight());
     for (int i = 0; i < intValues.length; ++i) {
       final int val = intValues[i];
-      floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - imageMean) / imageStd;
-      floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - imageMean) / imageStd;
-      floatValues[i * 3 + 2] = ((val & 0xFF) - imageMean) / imageStd;
+//      floatValues[i] = val;
+//      floatValues[i * 3 + 0] = (((val >> 16) & 0xFF) - imageMean) / imageStd;
+//      floatValues[i * 3 + 1] = (((val >> 8) & 0xFF) - imageMean) / imageStd;
+//      floatValues[i * 3 + 2] = ((val & 0xFF) - imageMean) / imageStd;
+      floatValues[i * 3 + 2] = Color.red(val);
+      floatValues[i * 3 + 1] = Color.green(val);
+      floatValues[i * 3] = Color.blue(val);
     }
+
+//    Bitmap bmp = Bitmap.createBitmap(intValues, bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+//
+//
+//          FileOutputStream out = null;
+//
+//      String filename = bmp.toString() + "frame.jpg";
+//
+//      File sd = new File(Environment.getExternalStorageDirectory() + "/frames");
+//      boolean success = true;
+//      if (!sd.exists()) {
+//          success = sd.mkdir();
+//      }
+//      if (success) {
+//          File dest = new File(sd, filename);
+//
+//          try {
+//              out = new FileOutputStream(dest);
+//              bmp.compress(Bitmap.CompressFormat.JPEG, 100, out); // bmp is your Bitmap instance
+//              // PNG is a lossless format, the compression factor (100) is ignored
+//
+//          } catch (Exception e) {
+//              e.printStackTrace();
+//              Log.d(TAG, e.getMessage());
+//          } finally {
+//              try {
+//                  if (out != null) {
+//                      out.close();
+//                      Log.d(TAG, "OK!!");
+//                  }
+//              } catch (IOException e) {
+//                  Log.d(TAG, e.getMessage() + "Error");
+//                  e.printStackTrace();
+//              }
+//          }
+//      }
+
     Trace.endSection();
 
     // Copy the input data into TensorFlow.
     Trace.beginSection("feed");
     inferenceInterface.feed(inputName, floatValues, 1, inputSize, inputSize, 3);
+    float[] drop = new float[1];
+    drop[0] = 1;
+    inferenceInterface.feed("fc_dropout", drop, 1);
+    inferenceInterface.feed("conv_dropout", drop, 1);
     Trace.endSection();
 
     // Run the inference call.
@@ -153,6 +206,7 @@ public class TensorFlowImageClassifier implements Classifier {
     // Copy the output Tensor back into the output array.
     Trace.beginSection("fetch");
     inferenceInterface.fetch(outputName, outputs);
+
     Trace.endSection();
 
     // Find the best classifications.
